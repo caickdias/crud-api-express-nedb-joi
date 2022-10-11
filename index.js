@@ -1,6 +1,6 @@
 const express = require("express");
 const nedb = require('nedb-async').AsyncNedb;
-const Joi = require('joi');
+const { patchSchema, postSchema, querySchema } = require('./schemas/Bow');
 const morgan = require('morgan');
 
 const PORT = process.env.PORT || 8000;
@@ -18,33 +18,6 @@ app.use(
     ":method :url :status :response-time ms - :res[content-length] :body - :req[content-length]"
   )
 );
-
-const postSchema = Joi.object({
-  type: Joi.string().required(),
-  length: Joi.number(),
-  drawWeight: Joi.number(),
-  brand: Joi.string(),
-  modelName: Joi.string(),
-  hand: Joi.string()
-    .valid("right", "left", "two-handed")
-    .required(),
-  braceHeight: Joi.number(),
-})
-
-const patchSchema = Joi.object({
-  type: Joi.string(),
-  length: Joi.number(),
-  drawWeight: Joi.number(),
-  brand: Joi.string(),
-  modelName: Joi.string(),
-  hand: Joi.string()
-    .valid("right", "left", "two-handed"),    
-  braceHeight: Joi.number(),
-})
-
-const querySchema = Joi.object({
-  _id: Joi.string().required(),
-})
 
 app.listen(PORT, () => {
   console.log(`[ index.js ] Listening on port ${PORT}`);
