@@ -1,5 +1,7 @@
 const express = require("express");
 const nedb = require('nedb');
+const Joi = require('joi');
+const morgan = require('morgan');
 
 const PORT = process.env.PORT || 8000;
 const DB_PATH = process.env.DB_PATH || 'data.db';
@@ -9,6 +11,40 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+morgan.token("body", (req, res) => JSON.stringify(req.body));
+app.use(
+  morgan(
+    ":method :url :status :response-time ms - :res[content-length] :body - :req[content-length]"
+  )
+);
+
+const postSchema = Joi.object({
+  type: Joi.string().required(),
+  length: Joi.number(),
+  drawWeight: Joi.number(),
+  brand: Joi.string(),
+  modelName: Joi.string(),
+  hand: Joi.string()
+    .valid("right", "left", "two-handed")
+    .required(),
+  braceHeight: Joi.number(),
+})
+
+const patchSchema = Joi.object({
+  type: Joi.string(),
+  length: Joi.number(),
+  drawWeight: Joi.number(),
+  brand: Joi.string(),
+  modelName: Joi.string(),
+  hand: Joi.string()
+    .valid("right", "left", "two-handed"),    
+  braceHeight: Joi.number(),
+})
+
+const querySchema = Joi.object({
+  _id: Joi.string().required(),
+})
 
 app.listen(PORT, () => {
   console.log(`[ index.js ] Listening on port ${PORT}`);
