@@ -14,20 +14,37 @@ app.listen(PORT, () => {
   console.log(`[ index.js ] Listening on port ${PORT}`);
 });
 
-// Create
-app.get('/bows', async (req, res, next) => {
+app.post('/api/bow', (req, res) => {
+  const { type, length, drawWeight, brand, modelName, hand, braceHeight } = req.body;
+
+  const bow = {
+    type, 
+    length,
+    drawWeight,
+    brand,
+    modelName,
+    hand,
+    braceHeight
+  }
+
+  db.insert(bow, (err, result) => {
+    if(err){
+      res.status(500).send('Internal error');
+    } else {
+      res.json(result);
+    }
+  })
+})
+
+
+app.get('/api/bows', async (req, res, next) => {
   
-  const fakeData = [{
-    id: 123,
-    type: 'recurve',
-    length: 66,
-    drawWeight: 40,
-    brand: 'samick',
-    modelName: 'polaris',
-    hand: 'right',
-    braceHeight: 7,    
-  }]
-  
-  res.status(200).send(fakeData);
+  db.find({}, (err, result) => {
+    if(err){
+      res.status(500).send('Internal error');
+    } else {
+      res.json(result);
+    }
+  })
 });
 
