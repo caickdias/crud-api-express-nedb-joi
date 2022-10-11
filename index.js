@@ -14,6 +14,7 @@ app.listen(PORT, () => {
   console.log(`[ index.js ] Listening on port ${PORT}`);
 });
 
+//insert new bow
 app.post('/api/bow', (req, res) => {
   const { type, length, drawWeight, brand, modelName, hand, braceHeight } = req.body;
 
@@ -36,8 +37,25 @@ app.post('/api/bow', (req, res) => {
   })
 })
 
+//get bow by id
+app.get('/api/bow/:id', (req, res) => {
+  const { id } = req.params;
 
-app.get('/api/bows', async (req, res, next) => {
+  const query = {
+    _id: id
+  }
+
+  db.findOne(query, (err, result) => {
+    if(err){
+      res.status(500).send('Internal error');
+    } else {
+      res.json(result);
+    }
+  })
+})
+
+//get all bows
+app.get('/api/bows', (req, res) => {
   
   db.find({}, (err, result) => {
     if(err){
