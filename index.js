@@ -16,6 +16,7 @@ app.listen(PORT, () => {
 
 //insert new bow
 app.post('/api/bow', (req, res) => {
+
   const { type, length, drawWeight, brand, modelName, hand, braceHeight } = req.body;
 
   const bow = {
@@ -65,4 +66,55 @@ app.get('/api/bows', (req, res) => {
     }
   })
 });
+
+//update bow by id
+app.patch('/api/bow/:id', (req, res) => {
+
+  const { id } = req.params;
+  const { type, length, drawWeight, brand, modelName, hand, braceHeight } = req.body;
+
+  const bow = {
+    ...(type && {type}),
+    ...(length && {length}),
+    ...(drawWeight && {drawWeight}),
+    ...(brand && {brand}),
+    ...(modelName && {modelName}),
+    ...(hand && {hand}),
+    ...(braceHeight && {braceHeight}),    
+  }
+
+  const query = {
+    _id: id,
+  }
+
+  const update = {
+    $set: bow,
+  }
+  const options = {}
+
+  db.update(query, update, options, (err, numAffected) => {
+    if (err) {
+      res.status(500).send('Internal server error.');
+    } else {            
+      res.json(numAffected);
+    }
+  })
+})
+
+app.delete('/api/bow/:id', (req, res) => {
+  
+  const { id } = req.params;
+
+  const query = {
+    _id: id,
+  }
+
+  db.remove(query, (err, result) => {
+    if (err) {
+      res.status(500).send('Internal server error.');
+    } else {            
+      res.json(result);
+    }
+  })
+})
 
