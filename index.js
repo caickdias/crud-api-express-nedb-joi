@@ -1,5 +1,5 @@
 const express = require("express");
-const nedb = require('nedb');
+const nedb = require('nedb-async').AsyncNedb;
 const Joi = require('joi');
 const morgan = require('morgan');
 
@@ -51,106 +51,99 @@ app.listen(PORT, () => {
 });
 
 //insert new bow
-app.post('/api/bow', (req, res) => {
+app.post('/api/bow', async (req, res, next) => {
+  try {
+    const { type, length, drawWeight, brand, modelName, hand, braceHeight } = req.body;
 
-  const { type, length, drawWeight, brand, modelName, hand, braceHeight } = req.body;
-
-  const bow = {
-    type, 
-    length,
-    drawWeight,
-    brand,
-    modelName,
-    hand,
-    braceHeight
-  }
-
-  db.insert(bow, (err, result) => {
-    if(err){
-      res.status(500).send('Internal error');
-    } else {
-      res.json(result);
+    const bow = {
+      type, 
+      length,
+      drawWeight,
+      brand,
+      modelName,
+      hand,
+      braceHeight
     }
-  })
+
+    await postSchema.validateAsync(bow);
+    const data = await db.asyncInsert(bow)
+    res.json(data);
+  } catch(err){
+    next(err);
+  }
 })
 
 //get bow by id
-app.get('/api/bow/:id', (req, res) => {
+app.get('/api/bow/:id', async (req, res, next) => {
+  
   const { id } = req.params;
-
   const query = {
     _id: id
   }
 
-  db.findOne(query, (err, result) => {
-    if(err){
-      res.status(500).send('Internal error');
-    } else {
-      res.json(result);
-    }
-  })
+  try {
+    await querySchema.validateAsync(query);
+    const data = await db.asyncFindOne(query);      
+    res.json(data);
+  } catch(err){
+    next(err)
+  }
+  
 })
 
 //get all bows
-app.get('/api/bows', (req, res) => {
+app.get('/api/bows', async (req, res, next) => {
+  try{
+    const data = await db.asyncFind({});
+    res.json(data);
+  } catch(err) {
+    next(err)
+  }
   
-  db.find({}, (err, result) => {
-    if(err){
-      res.status(500).send('Internal error');
-    } else {
-      res.json(result);
-    }
-  })
 });
 
 //update bow by id
-app.patch('/api/bow/:id', (req, res) => {
+app.patch('/api/bow/:id', async (req, res, next) => {
 
   const { id } = req.params;
-  const { type, length, drawWeight, brand, modelName, hand, braceHeight } = req.body;
-
-  const bow = {
-    ...(type && {type}),
-    ...(length && {length}),
-    ...(drawWeight && {drawWeight}),
-    ...(brand && {brand}),
-    ...(modelName && {modelName}),
-    ...(hand && {hand}),
-    ...(braceHeight && {braceHeight}),    
-  }
-
   const query = {
     _id: id,
   }
 
-  const update = {
-    $set: bow,
-  }
-  const options = {}
-
-  db.update(query, update, options, (err, numAffected) => {
-    if (err) {
-      res.status(500).send('Internal server error.');
-    } else {            
-      res.json(numAffected);
+  try{
+    const bow = req.body;
+    
+    const update = {
+      $set: bow,
     }
-  })
+    const options = {}
+  
+    await querySchema.validateAsync(query);
+    await patchSchema.validateAsync(bow);
+    const numAffected = await db.asyncUpdate(query, update, options);
+    res.json({ affected: numAffected});
+
+  } catch(err) {
+    next(err);
+  }
+ 
 })
 
-app.delete('/api/bow/:id', (req, res) => {
+//delete bow by id
+app.delete('/api/bow/:id', async (req, res, next) => {
   
   const { id } = req.params;
-
   const query = {
     _id: id,
   }
+  const options = {};
 
-  db.remove(query, (err, result) => {
-    if (err) {
-      res.status(500).send('Internal server error.');
-    } else {            
-      res.json(result);
-    }
-  })
+  try {
+    await querySchema.validateAsync(query);
+    const numAffected = await db.asyncRemove(query, options)
+    res.json({ affected: numAffected });
+  } catch(err) {
+    next(err)
+  }  
 })
 
