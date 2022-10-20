@@ -1,11 +1,15 @@
 const express = require("express");
 const morgan = require('morgan');
 
-const bowRoute = require('./routes/Bow');
+var cors = require('cors');
+const bowRoute = require('./routes/bow');
+const authRoute = require('./routes/auth');
 
 const PORT = process.env.PORT || 8000;
 
 const app = express();
+app.use(cors());
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -18,7 +22,14 @@ app.use(
   )
 );
 
+app.all('/*', function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "X-Requested-With");
+  next();
+});
+
 app.use('/api', bowRoute);
+app.use('/api/', authRoute);
 
 app.listen(PORT, () => {
   console.log(`[ index.js ] Listening on port ${PORT}`);

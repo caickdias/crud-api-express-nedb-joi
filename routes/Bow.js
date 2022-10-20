@@ -2,6 +2,7 @@
 const express = require('express');
 const { patchSchema, postSchema, querySchema } = require('../schemas/Bow');
 const db = require('../database/db.js');
+const { InsertNewBow } = require('../services/db/bow');
 
 const router = express.Router();
 
@@ -20,8 +21,8 @@ router.post('/bow', async (req, res, next) => {
       }
   
       await postSchema.validateAsync(bow);
-      const data = await db.asyncInsert(bow)
-      res.json(data);
+      InsertNewBow(bow).then(result => res.json(result));
+            
     } catch(err){
       next(err);
     }
