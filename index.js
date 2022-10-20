@@ -28,8 +28,8 @@ app.all('/*', function(req, res, next) {
   next();
 });
 
-app.use('/api', bowRoute);
-app.use('/api/', authRoute);
+app.use('/api/bow', bowRoute);
+app.use('/api/auth', authRoute);
 
 app.listen(PORT, () => {
   console.log(`[ index.js ] Listening on port ${PORT}`);

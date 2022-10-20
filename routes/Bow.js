@@ -2,11 +2,10 @@
 const express = require('express');
 const { patchSchema, postSchema, querySchema } = require('../schemas/Bow');
 const db = require('../database/db.js');
-const { InsertNewBow } = require('../services/db/bow');
 
 const router = express.Router();
 
-router.post('/bow', async (req, res, next) => {
+router.post('/', async (req, res, next) => {
     try {
       const { type, length, drawWeight, brand, modelName, hand, braceHeight } = req.body;
   
@@ -21,15 +20,16 @@ router.post('/bow', async (req, res, next) => {
       }
   
       await postSchema.validateAsync(bow);
-      InsertNewBow(bow).then(result => res.json(result));
-            
+      const result = await db.asyncInsert(bow);
+      res.json(result);
+
     } catch(err){
       next(err);
     }
   })
   
   //get bow by id
-  router.get('/bow/:id', async (req, res, next) => {
+  router.get('/:id', async (req, res, next) => {
     
     const { id } = req.params;
     const query = {
@@ -47,10 +47,10 @@ router.post('/bow', async (req, res, next) => {
   })
   
   //get all bows
-  router.get('/bows', async (req, res, next) => {
+  router.get('/', async (req, res, next) => {
     try{
-      const data = await db.asyncFind({});
-      res.json(data);
+      const result = await db.asyncFind({});      
+      res.json(result);
     } catch(err) {
       next(err)
     }
@@ -58,7 +58,7 @@ router.post('/bow', async (req, res, next) => {
   });
   
   //update bow by id
-  router.patch('/bow/:id', async (req, res, next) => {
+  router.patch('/:id', async (req, res, next) => {
   
     const { id } = req.params;
     const query = {
@@ -85,7 +85,7 @@ router.post('/bow', async (req, res, next) => {
   })
   
   //delete bow by id
-  router.delete('/bow/:id', async (req, res, next) => {
+  router.delete('/:id', async (req, res, next) => {
     
     const { id } = req.params;
     const query = {
@@ -95,7 +95,7 @@ router.post('/bow', async (req, res, next) => {
   
     try {
       await querySchema.validateAsync(query);
-      const numAffected = await db.asyncRemove(query, options)
+      const numAffected = await db.asyncRemove(query, options);
       res.json({ affected: numAffected });
     } catch(err) {
       next(err)
